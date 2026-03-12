@@ -1,0 +1,44 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Virtual environments
+.venv
+.python-version
+
+# Environment & sensitive files
+.env
+.secrets
+*.key
+
+# Data & model & report files (user generated content)
+data/
+models/
+reports/
+*.parquet
+*.csv
+*.xlsx
+*.pkl
+*.onnx
+*.pmml
+*.pdf
+*.docx
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+~$*

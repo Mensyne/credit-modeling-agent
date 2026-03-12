@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  credit-modeling-agent:
+    build: .
+    ports:
+      - "${PORT:-8501}:8501"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+    env_file:
+      - .env
+    restart: unless-stopped
