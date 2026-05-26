@@ -94,13 +94,13 @@ def render_deploy_agent():
 
                     # 下载按钮
                     for res in export_results:
-                    with open(res["路径"], "rb") as f:
-                        st.download_button(
-                            label=f"下载{res['格式']}文件",
-                            data=f.read(),
-                            file_name=os.path.basename(res["路径"]),
-                            mime="application/octet-stream",
-                        )
+                        with open(res["路径"], "rb") as f:
+                            st.download_button(
+                                label=f"下载{res['格式']}文件",
+                                data=f.read(),
+                                file_name=os.path.basename(res["路径"]),
+                                mime="application/octet-stream",
+                            )
 
     with tab2:
         st.subheader("一键部署API服务")
