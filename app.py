@@ -18,8 +18,12 @@ st.set_page_config(
 )
 
 # 自定义样式
-with open("assets/css/custom.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+css_path = os.path.join(os.path.dirname(__file__), "assets", "css", "custom.css")
+if os.path.exists(css_path):
+    with open(css_path, encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+else:
+    st.warning("未找到自定义样式文件 assets/css/custom.css，已使用默认样式。")
 
 # 导航菜单
 menu = [

@@ -21,8 +21,8 @@ def render_data_agent():
         uploaded_file = st.file_uploader("选择文件", type=["csv", "xlsx", "parquet"])
         if uploaded_file:
             with st.spinner("正在加载数据..."):
-                df = load_file(uploaded_file)
-                if df is not None:
+                try:
+                    df = load_file(uploaded_file)
                     st.session_state.raw_data = df
                     st.success(f"数据加载成功！共 {df.shape[0]} 行，{df.shape[1]} 列")
                     st.subheader("数据预览")
@@ -38,6 +38,8 @@ def render_data_agent():
                         st.write("缺失值统计")
                         missing = df.null_count()
                         st.dataframe(missing)
+                except Exception as e:
+                    st.error(f"文件加载失败：{str(e)}")
 
     with tab2:
         st.subheader("数据库对接")
@@ -58,13 +60,15 @@ def render_data_agent():
 
         if st.button("连接并查询"):
             with st.spinner("正在连接数据库..."):
-                df = connect_database(
-                    db_type, host, port, user, password, db_name, query
-                )
-                if df is not None:
+                try:
+                    df = connect_database(
+                        db_type, host, port, user, password, db_name, query
+                    )
                     st.session_state.raw_data = df
                     st.success(f"数据查询成功！共 {df.shape[0]} 行，{df.shape[1]} 列")
                     st.dataframe(df.head(10))
+                except Exception as e:
+                    st.error(f"数据库查询失败：{str(e)}")
 
     with tab3:
         st.subheader("API接入")
@@ -75,8 +79,10 @@ def render_data_agent():
 
         if st.button("请求数据"):
             with st.spinner("正在请求API..."):
-                df = fetch_api_data(api_url, method, headers, params)
-                if df is not None:
+                try:
+                    df = fetch_api_data(api_url, method, headers, params)
                     st.session_state.raw_data = df
                     st.success(f"数据获取成功！共 {df.shape[0]} 行，{df.shape[1]} 列")
                     st.dataframe(df.head(10))
+                except Exception as e:
+                    st.error(f"API请求失败：{str(e)}")

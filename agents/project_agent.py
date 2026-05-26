@@ -8,6 +8,10 @@ from utils.auth_utils import hash_password, verify_password
 # 初始化系统数据库
 def init_system_db():
     db_path = os.getenv("DB_PATH", "./data/system.db")
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
 

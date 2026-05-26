@@ -89,10 +89,11 @@ def render_deploy_agent():
                         st.warning(f"PMML导出失败：{str(e)}，当前模型暂不支持PMML格式")
 
                 st.success("模型导出完成！")
-                st.dataframe(st.dataframe(export_results), use_container_width=True)
+                if export_results:
+                    st.dataframe(export_results, use_container_width=True)
 
-                # 下载按钮
-                for res in export_results:
+                    # 下载按钮
+                    for res in export_results:
                     with open(res["路径"], "rb") as f:
                         st.download_button(
                             label=f"下载{res['格式']}文件",
@@ -112,6 +113,7 @@ def render_deploy_agent():
                 deploy_code = f"""
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import os
 import pickle
 import numpy as np
 from pydantic import BaseModel
@@ -120,12 +122,16 @@ from typing import List
 app = FastAPI(title="{model["name"]} 推理接口", version="1.0")
 security = HTTPBearer()
 
-# 加载模型
-with open("{base_name}.pkl", "rb") as f:
-    model = pickle.load(f)
+BASE_DIR = os.path.dirname(__file__)
+MODEL_FILE = os.path.join(BASE_DIR, "{base_name}.pkl")
 
+# 加载模型
+with open(MODEL_FILE, "rb") as f:
+    model_data = pickle.load(f)
+
+MODEL = model_data["model"]
 FEATURE_COLS = {json.dumps(model["feature_cols"])}
-SECRET_KEY = "your-secret-key-here"
+SECRET_KEY = os.getenv("DEPLOY_SECRET_KEY", "your-secret-key-here")
 
 # 请求模型
 class PredictRequest(BaseModel):
@@ -144,10 +150,14 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
 async def predict(request: PredictRequest, auth: HTTPAuthorizationCredentials = Depends(verify_token)):
     if len(request.features) != len(FEATURE_COLS):
         raise HTTPException(status_code=400, detail=f"特征数量不匹配，需要{len(FEATURE_COLS)}个特征")
-    
+
     features = np.array(request.features).reshape(1, -1)
-    proba = model["model"].predict_proba(features)[0][1]
-    
+    if hasattr(MODEL, "predict_proba"):
+        proba = MODEL.predict_proba(features)[0][1]
+    else:
+        pred = MODEL.predict(features)[0]
+        proba = float(pred)
+
     return {{
         "probability": float(proba),
         "result": "高风险" if proba >= 0.5 else "低风险",
@@ -168,8 +178,7 @@ if __name__ == "__main__":
                     f.write(deploy_code)
 
                 # 保存requirements
-                requirements = """
-fastapi==0.104.1
+                requirements = """fastapi==0.104.1
 uvicorn==0.24.0
 pydantic==2.5.2
 python-multipart==0.0.6
@@ -178,7 +187,7 @@ xgboost==2.0.0
 lightgbm==4.1.0
 catboost==1.2.0
 numpy==1.26.2
-                """
+"""
                 req_path = f"./models/{base_name}_requirements.txt"
                 with open(req_path, "w", encoding="utf-8") as f:
                     f.write(requirements)
